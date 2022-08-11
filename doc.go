@@ -1,4 +1,6 @@
 /*
+Package validator is used to validate strings, slices, and maps.
+
 # Rules
 
 TODO:
@@ -8,7 +10,7 @@ TODO:
 
 # Supported types and rules
 
-These are the supported variable types that can be passed to `Validate` and `ValidateAny`, and the rules that are available to them.
+These are the supported variable types that can be passed to [Validate] and [ValidateAny], and the rules that are available to them.
 
 ## `string`
 
