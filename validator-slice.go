@@ -1,7 +1,6 @@
 package validator
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"reflect"
@@ -9,14 +8,8 @@ import (
 	"github.com/spf13/cast"
 )
 
-// listValidator is a validator for type `[]T`
-// Supported parameters:
-// - `min=int` minimum length
-// - `max=int` maximum length
-// - `sort` boolean flag that makes the result sorted
-// - `unique` boolean flag that removes duplicates in the result (and sorts it)
-// - `value=rule`: rule for validating values
-func listValidator[T any](rule string) validator[[]T] {
+// sliceValidator returns a validator for type `[]T`
+func sliceValidator[T any](rule string) validator[[]T] {
 	var zero T
 	errFunc := errorValidateFunc[[]T]
 
@@ -86,7 +79,7 @@ func listValidator[T any](rule string) validator[[]T] {
 		return errFunc(fmt.Errorf("type of value '%T' is not supported", zero))
 	}
 
-	return func(ctx context.Context, list []T) (res []T, err error) {
+	return func(list []T) (res []T, err error) {
 		// Check if we have rules
 		if min > 0 && len(list) < min {
 			return nil, fmt.Errorf("value is shorter than %d", min)
@@ -97,7 +90,7 @@ func listValidator[T any](rule string) validator[[]T] {
 
 		// Validate each item
 		for i := 0; i < len(list); i++ {
-			list[i], err = valueValidator(ctx, list[i])
+			list[i], err = valueValidator(list[i])
 			if err != nil {
 				return nil, err
 			}

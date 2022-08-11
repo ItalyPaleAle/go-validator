@@ -1,7 +1,6 @@
 package validator
 
 import (
-	"context"
 	"reflect"
 	"testing"
 )
@@ -57,9 +56,11 @@ func Test_stringValidator(t *testing.T) {
 		{name: "collapse whitespaces", rule: rules[0], value: "hi   !", wantRes: "hi !"},
 		{name: "replace Unicode spaces", rule: rules[0], value: "hi !", wantRes: "hi !"},
 		{name: "replace and collapse Unicode spaces", rule: rules[0], value: "h   i !", wantRes: "h i !"},
+		{name: "tabs are replaced with spaces", rule: rules[0], value: "hi\t !", wantRes: "hi !"},
 
 		{name: "preserve whitespaces", rule: rules[4], value: "hi   !", wantRes: "hi   !"},
 		{name: "preserve whitespaces keeps newlines", rule: rules[4], value: "hi   !\n \n\n hi", wantRes: "hi   !\n \n\n hi"},
+		{name: "preserve whitespaces keeps tabs", rule: rules[4], value: "hi\t   !\n \n\n hi", wantRes: "hi\t   !\n \n\n hi"},
 		{name: "preserve Unicode spaces", rule: rules[4], value: "hi !", wantRes: "hi !"},
 		{name: "preserve and don't collapse Unicode spaces", rule: rules[4], value: "h   i !", wantRes: "h   i !"},
 
@@ -93,7 +94,7 @@ func Test_stringValidator(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			validator := stringValidator(tt.rule)
-			gotRes, err := validator(context.Background(), tt.value)
+			gotRes, err := validator(tt.value)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("stringValidator().validator error = %v, wantErr %v (value = %s)", err, tt.wantErr, gotRes)
 				return

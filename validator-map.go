@@ -1,7 +1,6 @@
 package validator
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"reflect"
@@ -9,13 +8,8 @@ import (
 	"github.com/spf13/cast"
 )
 
-// keyvalueValidator is a validator for type `map[string]T`
-// Supported parameters:
-// - `min=int` minimum length
-// - `max=int` maximum length
-// - `key=rule`: rule for validating map keys
-// - `value=rule`: rule for validating map values
-func keyvalueValidator[T any](rule string) validator[map[string]T] {
+// mapValidator returns a validator for type `map[string]T`
+func mapValidator[T any](rule string) validator[map[string]T] {
 	var zero T
 	errFunc := errorValidateFunc[map[string]T]
 
@@ -64,7 +58,7 @@ func keyvalueValidator[T any](rule string) validator[map[string]T] {
 		fp.Set(reflect.Indirect(reflect.ValueOf(f)))
 	}
 
-	return func(ctx context.Context, val map[string]T) (map[string]T, error) {
+	return func(val map[string]T) (map[string]T, error) {
 		// Check if we have rules
 		if min > 0 && len(val) < min {
 			return nil, fmt.Errorf("value is shorter than %d", min)
@@ -76,11 +70,11 @@ func keyvalueValidator[T any](rule string) validator[map[string]T] {
 		// Validate each item
 		res := make(map[string]T, len(val))
 		for k, v := range val {
-			k, err = keyValidator(ctx, k)
+			k, err = keyValidator(k)
 			if err != nil {
 				return nil, err
 			}
-			v, err = valueValidator(ctx, v)
+			v, err = valueValidator(v)
 			if err != nil {
 				return nil, err
 			}

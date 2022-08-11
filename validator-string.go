@@ -1,7 +1,6 @@
 package validator
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"strings"
@@ -12,13 +11,7 @@ import (
 	"golang.org/x/text/unicode/norm"
 )
 
-// stringValidator is a validator for type `string`
-// Supported parameters:
-// - `min=int` minimum length
-// - `max=int` maximum length
-// - `preserve-whitespace` boolean flag that preserves all whitespaces (does not collapse whitespaces and does not convert Unicode spaces to regular spaces)
-// - `preserve-newlines` boolean flag that preserves all newlines even when `preserve-whitespace` is not set (note that newlines are still trimmed from the ends of the string)
-// - `replace-whitespaces` boolean flag that replaces all whitespaces with an underscore
+// stringValidator returns a validator for type `string`
 func stringValidator(rule string) validator[string] {
 	// Parse rule
 	params, err := parseParams(rule)
@@ -66,7 +59,7 @@ func stringValidator(rule string) validator[string] {
 		replaceWhitespaces = true
 	}
 
-	return func(ctx context.Context, val string) (res string, err error) {
+	return func(val string) (res string, err error) {
 		// Normalize to form NFC
 		val = norm.NFC.String(val)
 
@@ -104,7 +97,7 @@ func cleanStringInternal(val string, preserveNewlines, replaceWhitespaces, prese
 		r, w = utf8.DecodeRuneInString(val[i:])
 
 		// Remove control characters, but preserve these characters:
-		// - tabs (0x09)
+		// - tabs (0x09) (which are replaced to regular spaces if preserve-whitespace is not present)
 		// - newlines (0x0A)
 		// - Zero-Width Joiner (ZWJ), which is used by emojis (U+200D)
 		if r != 0x09 && r != 0x0A && r != 0x200D && unicode.Is(unicode.C, r) {

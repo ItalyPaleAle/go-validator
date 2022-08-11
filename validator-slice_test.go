@@ -1,12 +1,11 @@
 package validator
 
 import (
-	"context"
 	"reflect"
 	"testing"
 )
 
-func Test_listValidator(t *testing.T) {
+func Test_sliceValidator(t *testing.T) {
 	rules := []string{
 		"",
 		"min=2",
@@ -15,6 +14,7 @@ func Test_listValidator(t *testing.T) {
 		"value=(min=2)",
 		"sort",
 		"unique",
+
 		// Invalid rules
 		"min=0",
 		"max=-1",
@@ -28,8 +28,8 @@ func Test_listValidator(t *testing.T) {
 		wantRes []string
 		wantErr bool
 	}{
-		{name: "empty list", rule: rules[0], value: []string{}, wantRes: []string{}},
-		{name: "list of strings", rule: rules[0], value: []string{"hello", "world"}, wantRes: []string{"hello", "world"}},
+		{name: "empty slice", rule: rules[0], value: []string{}, wantRes: []string{}},
+		{name: "slice of strings", rule: rules[0], value: []string{"hello", "world"}, wantRes: []string{"hello", "world"}},
 		{name: "trim spaces in strings", rule: rules[0], value: []string{" hi! ", "ciao mondo"}, wantRes: []string{"hi!", "ciao mondo"}},
 		{name: "normalize strings", rule: rules[0], value: []string{"e\u0300", "\u00e8", "😀"}, wantRes: []string{"\u00e8", "\u00e8", "😀"}},
 		{name: "min length ok", rule: rules[1], value: []string{"a", "b"}, wantRes: []string{"a", "b"}},
@@ -60,14 +60,14 @@ func Test_listValidator(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			validator := listValidator[string](tt.rule)
-			gotRes, err := validator(context.Background(), tt.value)
+			validator := sliceValidator[string](tt.rule)
+			gotRes, err := validator(tt.value)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("listValidator().validator error = %v, wantErr %v (value = %s)", err, tt.wantErr, gotRes)
+				t.Errorf("sliceValidator().validator error = %v, wantErr %v (value = %s)", err, tt.wantErr, gotRes)
 				return
 			}
 			if !reflect.DeepEqual(gotRes, tt.wantRes) {
-				t.Errorf("listValidator().validator = %v, want %v", gotRes, tt.wantRes)
+				t.Errorf("sliceValidator().validator = %v, want %v", gotRes, tt.wantRes)
 			}
 		})
 	}

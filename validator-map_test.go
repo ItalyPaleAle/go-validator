@@ -1,12 +1,11 @@
 package validator
 
 import (
-	"context"
 	"reflect"
 	"testing"
 )
 
-func Test_keyvalueValidator(t *testing.T) {
+func Test_mapValidator(t *testing.T) {
 	rules := []string{
 		"",
 		"min=2",
@@ -27,7 +26,7 @@ func Test_keyvalueValidator(t *testing.T) {
 		wantRes map[string]string
 		wantErr bool
 	}{
-		{name: "empty keyvalue", rule: rules[0], value: map[string]string{}, wantRes: map[string]string{}},
+		{name: "empty map", rule: rules[0], value: map[string]string{}, wantRes: map[string]string{}},
 		{name: "one element", rule: rules[0], value: map[string]string{"hello": "world"}, wantRes: map[string]string{"hello": "world"}},
 		{name: "two elements", rule: rules[0], value: map[string]string{"hello": "world", "foo": "bar"}, wantRes: map[string]string{"hello": "world", "foo": "bar"}},
 		{name: "trim spaces in strings", rule: rules[0], value: map[string]string{"1": " hi! ", "  2  ": " ciao "}, wantRes: map[string]string{"1": "hi!", "2": "ciao"}},
@@ -56,14 +55,14 @@ func Test_keyvalueValidator(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			validator := keyvalueValidator[string](tt.rule)
-			gotRes, err := validator(context.Background(), tt.value)
+			validator := mapValidator[string](tt.rule)
+			gotRes, err := validator(tt.value)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("keyvalueValidator().validator error = %v, wantErr %v (value = %s)", err, tt.wantErr, gotRes)
+				t.Errorf("mapValidator().validator error = %v, wantErr %v (value = %s)", err, tt.wantErr, gotRes)
 				return
 			}
 			if !reflect.DeepEqual(gotRes, tt.wantRes) {
-				t.Errorf("keyvalueValidator().validator = %v, want %v", gotRes, tt.wantRes)
+				t.Errorf("mapValidator().validator = %v, want %v", gotRes, tt.wantRes)
 			}
 		})
 	}

@@ -1,173 +1,157 @@
 package validator
 
 import (
-	"context"
-	"errors"
 	"fmt"
 	"reflect"
 	"strings"
 	"sync"
 )
 
-var validators sync.Map
-
-// Validate and sanitize a value
-// val is generally a pointer, and it returns a pointer
-func Validate(ctx context.Context, val any, rule string) (res any, err error) {
-	rule = strings.TrimSpace(rule)
-
-	// Get the type of the value
-	t := reflect.TypeOf(val)
-	isPtr := false
-	if t.Kind() == reflect.Pointer {
-		isPtr = true
-		v := reflect.ValueOf(val)
-		t = t.Elem()
-		if v.IsZero() {
-			val = nil
-		} else {
-			val = v.Elem().Interface()
-		}
-	}
-
-	// Get the validator from the cache
-	cacheKey := t.String() + "|" + rule
-	f, _ := validators.Load(cacheKey)
-
-	// Work with the type of the value
-	var ok bool
-	switch t.String() {
-	case "string":
-		var (
-			x  string
-			fT validator[string]
-		)
-		if val != nil {
-			x, ok = val.(string)
-			if !ok {
-				return nil, errors.New("failed to assert value as string")
-			}
-		}
-		if f != nil {
-			if fT, ok = f.(validator[string]); ok {
-				x, err = fT(ctx, x)
-				if err != nil {
-					return nil, err
-				}
-				if isPtr {
-					return &x, nil
-				} else {
-					return x, nil
-				}
-			}
-		}
-		fT = stringValidator(rule)
-		defer validators.Store(cacheKey, fT)
-		x, err = fT(ctx, x)
-		if err != nil {
-			return nil, err
-		}
-		if isPtr {
-			return &x, nil
-		} else {
-			return x, nil
-		}
-	case "[]string":
-		var (
-			x  []string
-			fT validator[[]string]
-		)
-		if val != nil {
-			x, ok = val.([]string)
-			if !ok {
-				return nil, errors.New("failed to assert value as string")
-			}
-		}
-		if f != nil {
-			if fT, ok = f.(validator[[]string]); ok {
-				x, err = fT(ctx, x)
-				if err != nil {
-					return nil, err
-				}
-				if isPtr {
-					return &x, nil
-				} else {
-					return x, nil
-				}
-			}
-		}
-		fT = listValidator[string](rule)
-		defer validators.Store(cacheKey, fT)
-		x, err = fT(ctx, x)
-		if err != nil {
-			return nil, err
-		}
-		if isPtr {
-			return &x, nil
-		} else {
-			return x, nil
-		}
-	case "map[string]string":
-		var (
-			x  map[string]string
-			fT validator[map[string]string]
-		)
-		if val != nil {
-			x, ok = val.(map[string]string)
-			if !ok {
-				return nil, errors.New("failed to assert value as string")
-			}
-		}
-		if f != nil {
-			if fT, ok = f.(validator[map[string]string]); ok {
-				x, err = fT(ctx, x)
-				if err != nil {
-					return nil, err
-				}
-				if isPtr {
-					return &x, nil
-				} else {
-					return x, nil
-				}
-			}
-		}
-		fT = keyvalueValidator[string](rule)
-		defer validators.Store(cacheKey, fT)
-		x, err = fT(ctx, x)
-		if err != nil {
-			return nil, err
-		}
-		if isPtr {
-			return &x, nil
-		} else {
-			return x, nil
-		}
-	}
-
-	return nil, fmt.Errorf("cannot find a validator for type %T", val)
+type validateTypes interface {
+	string | map[string]string | []string
 }
 
-// ValidateString is a short-hand function to validate a string
-func ValidateString(val string, rule string) (string, error) {
-	res, err := Validate(context.Background(), val, rule)
-	if err != nil {
-		return "", err
+// Validate and sanitize a value, using generics to define the supported types
+// Rule follows the format for the given type
+func Validate[T validateTypes](val T, rule string) (res T, err error) {
+	var zero T
+	if reflect.ValueOf(val).IsZero() {
+		return zero, nil
 	}
 
-	resStr, ok := res.(string)
-	if !ok {
-		return "", errors.New("returned value from Validate is not a string")
+	rule = strings.TrimSpace(rule)
+
+	var ok bool
+	switch x := any(val).(type) {
+	case string:
+		cacheKey := "string|" + rule
+		f, _ := validators.Load(cacheKey)
+		var fT validator[string]
+		if f != nil {
+			fT, ok = f.(validator[string])
+			if !ok {
+				fT = nil
+			}
+		}
+		if fT == nil {
+			fT = stringValidator(rule)
+			defer validators.Store(cacheKey, fT)
+		}
+		x, err = fT(x)
+		if err != nil {
+			return zero, err
+		}
+		return any(x).(T), nil
+	case []string:
+		if len(x) == 0 {
+			return val, nil
+		}
+		cacheKey := "[]string|" + rule
+		f, _ := validators.Load(cacheKey)
+		var fT validator[[]string]
+		if f != nil {
+			fT, ok = f.(validator[[]string])
+			if !ok {
+				fT = nil
+			}
+		}
+		if fT == nil {
+			fT = sliceValidator[string](rule)
+			defer validators.Store(cacheKey, fT)
+		}
+		x, err = fT(x)
+		if err != nil {
+			return zero, err
+		}
+		return any(x).(T), nil
+	case map[string]string:
+		if len(x) == 0 {
+			return val, nil
+		}
+		cacheKey := "map[string]string|" + rule
+		f, _ := validators.Load(cacheKey)
+		var fT validator[map[string]string]
+		if f != nil {
+			fT, ok = f.(validator[map[string]string])
+			if !ok {
+				fT = nil
+			}
+		}
+		if fT == nil {
+			fT = mapValidator[string](rule)
+			defer validators.Store(cacheKey, fT)
+		}
+		x, err = fT(x)
+		if err != nil {
+			return zero, err
+		}
+		return any(x).(T), nil
+	default:
+		return zero, fmt.Errorf("cannot find a validator for type %T", val)
+	}
+}
+
+var validators sync.Map
+
+// ValidateAny validates and sanitizes a value with type any
+// Supported types are: `string`, `map[string]string`, `[]string`, and pointers to those types
+// Rule follows the format for the given type
+func ValidateAny(val any, rule string) (res any, err error) {
+	if val == nil {
+		return nil, nil
 	}
 
-	return resStr, nil
+	// Get the type of the value
+	isPtr := false
+	if reflect.TypeOf(val).Kind() == reflect.Pointer {
+		isPtr = true
+		v := reflect.ValueOf(val)
+		if v.IsZero() {
+			return val, nil
+		}
+		val = v.Elem().Interface()
+	}
+
+	// Switch based on the type of the value
+	switch x := val.(type) {
+	case string:
+		x, err = Validate(x, rule)
+		if err != nil {
+			return nil, err
+		}
+		if isPtr {
+			return &x, nil
+		}
+		return x, nil
+	case []string:
+		x, err = Validate(x, rule)
+		if err != nil {
+			return nil, err
+		}
+		if isPtr {
+			return &x, nil
+		}
+		return x, nil
+	case map[string]string:
+		x, err = Validate(x, rule)
+		if err != nil {
+			return nil, err
+		}
+		if isPtr {
+			return &x, nil
+		}
+		return x, nil
+	default:
+		return nil, fmt.Errorf("cannot find a validator for type %T", val)
+	}
 }
 
 // validator is the type of a validator function
-type validator[T any] func(ctx context.Context, val T) (res T, err error)
+type validator[T any] func(val T) (res T, err error)
 
 // errorValidateFunc returns a validator function that returns an error
 func errorValidateFunc[T any](err error) validator[T] {
-	return func(ctx context.Context, val T) (T, error) {
+	return func(val T) (T, error) {
 		var zero T
 		return zero, err
 	}
