@@ -19,7 +19,7 @@ When passing a value of type `string`, validator performs a set of operations to
 - All leading and trailing whitespace characters are removed, including: spaces, newlines, tabs, and all other characters defined as whitespace by Unicode.
 - All whitespace characters–including spaces, newlines, tabs, and all other characters defined as whitespace by Unicode–are replaced with a regular space, and consecutive whitespace characters are collapsed into one. This is the default behavior but can be disabled with the `preserve-whitespace` rule.
 - All control characters are removed from the string. This includes almost all characters defined as control characters by Unicode, except tabs and newlines, which are converted to spaces (unless `preserve-whitespace` is set), and the Zero-Width Joiner (ZWJ) character, which is commonly used with emojis.
-- The string is normalized to Unicode form NFC (Canonical Composition). [(More info about Unicode normalization)](https://withblue.ink/2019/03/11/why-you-need-to-normalize-unicode-strings.html)
+- The string is normalized to Unicode form NFC (Canonical Composition). (More info about [Unicode normalization])
 
 ### Optional rules
 
@@ -53,6 +53,8 @@ These rules apply to the map validator:
 - **`max=int`**: maximum length–returns an error if the map's length (number of elements) is bigger than this.
 - **`key=(rule)`**: rule for validating each key of the map (see rules for the string validator).
 - **`value=(rule)`**: rule for validating each value of the map (see rules for the string validator).
+
+[Unicode normalization]: https://withblue.ink/2019/03/11/why-you-need-to-normalize-unicode-strings.html
 */
 package validator
 
