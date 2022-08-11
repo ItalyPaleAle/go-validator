@@ -1,0 +1,84 @@
+# All available settings of specific linters.
+linters-settings:
+  errcheck:
+    # report about assignment of errors to blank identifier: `num, _ := strconv.Atoi(numStr)`.
+    # Such cases aren't reported by default.
+    check-blank: false
+
+    # List of functions to exclude from checking, where each entry is a single function to exclude.
+    # See https://github.com/kisielk/errcheck#excluding-functions for details.
+    exclude-functions:
+      - (*github.com/gin-gonic/gin.Context).Error(error)
+
+  goimports:
+    # Put imports beginning with prefix after 3rd-party packages.
+    # It's a comma-separated list of prefixes.
+    # Default: ""
+    local-prefixes: italypaleale.me/photobox
+
+  govet:
+    # Report about shadowed variables.
+    # Default: false
+    check-shadowing: true
+
+    # Settings per analyzer.
+    settings:
+      # Analyzer name, run `go tool vet help` to see all analyzers.
+      printf:
+        # Comma-separated list of print function names to check (in addition to default, see `go tool vet help printf`).
+        # Default: []
+        funcs:
+          - (italypaleale.me/photobox/pkg/applog.AppLogger).Debug
+          - (italypaleale.me/photobox/pkg/applog.AppLogger).Info
+          - (italypaleale.me/photobox/pkg/applog.AppLogger).Warn
+          - (italypaleale.me/photobox/pkg/applog.AppLogger).Error
+          - (italypaleale.me/photobox/pkg/applog.AppLogger).Fatal
+          - (italypaleale.me/photobox/pkg/applog).Debug
+          - (italypaleale.me/photobox/pkg/applog).Info
+          - (italypaleale.me/photobox/pkg/applog).Warn
+          - (italypaleale.me/photobox/pkg/applog).Error
+          - (italypaleale.me/photobox/pkg/applog).Fatal
+      shadow:
+        # Whether to be strict about shadowing; can be noisy.
+        # Default: false
+        strict: false
+
+  revive:
+    rules:
+      - name: var-naming
+        severity: warning
+        disabled: false
+        arguments:
+          # Allowlist
+          - [ "ID", "SQL", "URL", "URI" ]
+          # Denylist
+          - [ ]
+
+linters:
+  # Disable all linters.
+  # Default: false
+  disable-all: true
+  # Enable specific linter
+  # https://golangci-lint.run/usage/linters/#enabled-by-default-linters
+  enable:
+    - asasalint
+    - bidichk
+    - bodyclose
+    - deadcode
+    - depguard
+    - errcheck
+    - gofumpt
+    - goimports
+    - gosec
+    - gosimple
+    - govet
+    - ineffassign
+    - prealloc
+    - revive
+    - staticcheck
+    #- stylecheck
+    - tagliatelle
+    - typecheck
+    - unused
+    - varcheck
+
