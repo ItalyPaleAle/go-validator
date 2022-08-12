@@ -28,6 +28,7 @@ When passing a value of type `string`, validator performs a set of operations to
 - **`preserve-whitespace`**: boolean flag that preserves all whitespace characters as-is (does not collapse whitespace characters and does not convert Unicode spaces to regular spaces).
 - **`preserve-newlines`**: boolean flag that preserves all newlines even when `preserve-whitespace` is not set (note that newlines are still trimmed from the ends of the string).
 - **`replace-whitespaces`**: boolean flag that replaces all whitespace characters with an underscore.
+- **`asciionly`**: boolean flag that removes all non-ASCII characters from the string. Note: this is executed after normalizing the string.
 
 ## `[]string`
 

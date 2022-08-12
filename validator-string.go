@@ -58,6 +58,11 @@ func stringValidator(rule string) validator[string] {
 		// Boolean option, with no value
 		replaceWhitespaces = true
 	}
+	asciiOnly := false
+	if _, ok := params["asciionly"]; ok {
+		// Boolean option, with no value
+		asciiOnly = true
+	}
 
 	return func(val string) (res string, err error) {
 		// Normalize to form NFC
@@ -68,7 +73,15 @@ func stringValidator(rule string) validator[string] {
 		val = strings.TrimSpace(val)
 
 		// Clean the string
-		val = cleanStringInternal(val, preserveNewlines, replaceWhitespaces, preserveWhitespace)
+		val = cleanStringInternal(val, cleanStringOpts{
+			preserveNewlines:   preserveNewlines,
+			replaceWhitespaces: replaceWhitespaces,
+			preserveWhitespace: preserveWhitespace,
+			asciiOnly:          asciiOnly,
+		})
+
+		// Trim whitespaces from each end again
+		val = strings.TrimSpace(val)
 
 		// Check if we have rules
 		if min > 0 && len(val) < min {
@@ -82,9 +95,16 @@ func stringValidator(rule string) validator[string] {
 	}
 }
 
+type cleanStringOpts struct {
+	preserveNewlines   bool
+	replaceWhitespaces bool
+	preserveWhitespace bool
+	asciiOnly          bool
+}
+
 // Iterate through the string to strip control characters
 // If needed, also collapse whitespaces and/or replace whitespaces
-func cleanStringInternal(val string, preserveNewlines, replaceWhitespaces, preserveWhitespace bool) string {
+func cleanStringInternal(val string, opts cleanStringOpts) string {
 	var (
 		r         rune
 		n         int
@@ -93,8 +113,19 @@ func cleanStringInternal(val string, preserveNewlines, replaceWhitespaces, prese
 	)
 	out := make([]byte, len(val))
 	for i, w := 0, 0; i < len(val); i += w {
-		// Get the rune
-		r, w = utf8.DecodeRuneInString(val[i:])
+		if opts.asciiOnly {
+			// Go byte-by-byte
+			r = rune(val[i])
+			w = 1
+
+			// Remove characters that are > 127
+			if r > 127 {
+				continue
+			}
+		} else {
+			// Get the UTF-8 rune
+			r, w = utf8.DecodeRuneInString(val[i:])
+		}
 
 		// Remove control characters, but preserve these characters:
 		// - tabs (0x09) (which are replaced to regular spaces if preserve-whitespace is not present)
@@ -112,23 +143,23 @@ func cleanStringInternal(val string, preserveNewlines, replaceWhitespaces, prese
 			continue
 		}
 		// If preserving newlines, keep those too
-		if preserveNewlines && r == '\n' {
+		if opts.preserveNewlines && r == '\n' {
 			lastSpace = true
 			out[n] = '\n'
 			n++
 		}
 
 		// Collapse consecutive whitespaces
-		if lastSpace && !preserveWhitespace {
+		if lastSpace && !opts.preserveWhitespace {
 			continue
 		}
 
 		lastSpace = true
-		if replaceWhitespaces {
+		if opts.replaceWhitespaces {
 			// Replace with an underscore
 			out[n] = '_'
 			n++
-		} else if !preserveWhitespace {
+		} else if !opts.preserveWhitespace {
 			// Replace with a regular space
 			out[n] = ' '
 			n++

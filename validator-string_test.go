@@ -15,8 +15,9 @@ func Test_stringValidator(t *testing.T) {
 		"preserve-newlines",
 		"replace-whitespaces",
 		"replace-whitespaces,preserve-newlines",
-
-		// Invalid rules
+		"asciionly",
+	}
+	rulesInvalid := []string{
 		"min=0",
 		"max=-1",
 		"min=5,max=1",
@@ -87,9 +88,16 @@ func Test_stringValidator(t *testing.T) {
 		{name: "replace Unicode spaces with underscore, keep newlines", rule: rules[7], value: "hi !\n !", wantRes: "hi_!\n!"},
 		{name: "replace and collapse Unicode spaces with underscore, keep newlines", rule: rules[7], value: "h  \n\r i !", wantRes: "h_\ni_!"},
 
-		{name: "invalid rule: min<1", rule: rules[8], value: "foo", wantErr: true},
-		{name: "invalid rule: max<1", rule: rules[9], value: "foo", wantErr: true},
-		{name: "invalid rule: min>max", rule: rules[10], value: "foo", wantErr: true},
+		{name: "asciionly allows ASCII characters", rule: rules[8], value: "hello   !\nworld", wantRes: "hello ! world"},
+		{name: "asciionly removes all non-ASCII characters 1", rule: rules[8], value: "日本語😊", wantRes: ""},
+		// 1️⃣ is made of the character "1" which is preserved (+ \uFE0F \u20E3)
+		{name: "asciionly removes all non-ASCII characters 2", rule: rules[8], value: "1️⃣", wantRes: "1"},
+		// Same character, in both NFC and NFD forms; it is removed after normalization
+		{name: "asciionly operates after normalization to NFC", rule: rules[8], value: "a\u0308 \u00e4", wantRes: ""},
+
+		{name: "invalid rule: min<1", rule: rulesInvalid[0], value: "foo", wantErr: true},
+		{name: "invalid rule: max<1", rule: rulesInvalid[1], value: "foo", wantErr: true},
+		{name: "invalid rule: min>max", rule: rulesInvalid[2], value: "foo", wantErr: true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
