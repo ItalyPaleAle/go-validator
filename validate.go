@@ -13,8 +13,8 @@ type validateTypes interface {
 
 var validators sync.Map
 
-// Validate and sanitize a value, using generics to define the supported types
-// Rule follows the format for the given type
+// Validate and sanitize a value, using generics to define the supported types.
+// The parameter `rule` follows the format for the given type.
 func Validate[T validateTypes](val T, rule string) (res T, err error) {
 	var zero T
 	if reflect.ValueOf(val).IsZero() {
@@ -93,9 +93,9 @@ func Validate[T validateTypes](val T, rule string) (res T, err error) {
 	}
 }
 
-// ValidateAny validates and sanitizes a value with type any
-// Supported types are: `string`, `map[string]string`, `[]string`, and pointers to those types
-// Rule follows the format for the given type
+// ValidateAny validates and sanitizes a value with type any.
+// Supported types are: `string`, `map[string]string`, `[]string`, and pointers to those types.
+// The parameter `rule` follows the format for the given type.
 func ValidateAny(val any, rule string) (res any, err error) {
 	if val == nil {
 		return nil, nil
