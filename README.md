@@ -2,9 +2,14 @@
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/italypaleale/go-validator.svg)](https://pkg.go.dev/github.com/italypaleale/go-validator)
 
-This package is a Go library for validating strings, maps, and slices.
+This package is a Go library for sanitizing and validating strings, maps, and slices.
 
-It can be used as a standalone library, and it's also designed to work with GraphQL directives.
+Features:
+
+- Can be used as a standalone library or with GraphQL directives.
+- Supports values of type `string`, `[]string` and `map[string]string`.
+- Many rules to control the sanitizer's behavior and add validation rules.
+- Designed to work with Unicode.
 
 # Using validator
 
@@ -32,7 +37,7 @@ Validator currently support 3 types of variables:
 - `map[string]string`
 - `[]string`
 
-If your variable is already of the correct type, you can use the [`Validate`](https://pkg.go.dev/github.com/italypaleale/go-validator#Validate) method:
+If your variable is already of one of those known types, you can use the [`Validate`](https://pkg.go.dev/github.com/italypaleale/go-validator#Validate) method:
 
 ```go
 // Validate(val T, rule string) (res T, err error)
@@ -112,10 +117,25 @@ func ValidateDirective(ctx context.Context, obj interface{}, next graphql.Resolv
 
 # Rules
 
-TODO:
+Rules allow configuring the behavior of the validator functions. They are passed as a string as the last parameter for [`Validate`](https://pkg.go.dev/github.com/italypaleale/go-validator#Validate) and [`ValidateAny`](https://pkg.go.dev/github.com/italypaleale/go-validator#ValidateAny).
 
-- How to pass rules
-- How to pass rules for keys and values (with maps and slices)
+Example of rule (for the string validator):
+
+```go
+cleanedVal, err := validator.Validate(myVal, "min=3,preserve-newlines")
+```
+
+> You can find all supported rules in the [Supported types and rules](#supported-types-and-rules) section below.
+
+Rules are comma-separated. They can have a value (such as `min=3`, indicating the minimum length required), or they can be boolean (such as `preserve-newlines`), whose presence alone is enough to enable the rule.
+
+With slices and maps rules can be used to control how values (and in the case of maps, keys too) are validated too. For example, while validating a `[]string`:
+
+```text
+value=(min=3,preserve-newlines),min=2
+```
+
+The rule above requires all values to comply with `min=3,preserve-newlines`. It additionally requires the slice itself to have at least 2 elements.
 
 # Supported types and rules
 
