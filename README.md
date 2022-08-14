@@ -1,6 +1,6 @@
 # go-validator
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/italypaleale/go-validator.svg)](https://pkg.go.dev/github.com/italypaleale/go-validator)
+[![Go Reference](https://pkg.go.dev/badge/github.com/italypaleale/go-validator.svg)](https://pkg.go.dev/github.com/italypaleale/go-validator) [![Continuous Integration](https://github.com/ItalyPaleAle/go-validator/actions/workflows/ci.yaml/badge.svg)](https://github.com/ItalyPaleAle/go-validator/actions/workflows/ci.yaml)
 
 This package is a Go library for sanitizing and validating strings, maps, and slices.
 
