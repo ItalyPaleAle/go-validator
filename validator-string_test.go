@@ -16,11 +16,15 @@ func Test_stringValidator(t *testing.T) {
 		"replace-whitespaces",
 		"replace-whitespaces,preserve-newlines",
 		"asciionly",
+		"unorm=nfd",
+		"unorm=nfkc",
+		"asciionly,unorm=nfd",
 	}
 	rulesInvalid := []string{
 		"min=0",
 		"max=-1",
 		"min=5,max=1",
+		"unorm=invalid",
 	}
 
 	tests := []struct {
@@ -95,9 +99,15 @@ func Test_stringValidator(t *testing.T) {
 		// Same character, in both NFC and NFD forms; it is removed after normalization
 		{name: "asciionly operates after normalization to NFC", rule: rules[8], value: "a\u0308 \u00e4", wantRes: ""},
 
+		{name: "normalize to form NFD 1", rule: rules[9], value: "e\u0300", wantRes: "e\u0300"},
+		{name: "normalize to form NFD 2", rule: rules[9], value: "\u00e8", wantRes: "e\u0300"},
+		{name: "normalize to form NFKC", rule: rules[10], value: "①", wantRes: "1"},
+		{name: "normalize to form NFD with asciionly", rule: rules[11], value: "e\u0300", wantRes: "e"},
+
 		{name: "invalid rule: min<1", rule: rulesInvalid[0], value: "foo", wantErr: true},
 		{name: "invalid rule: max<1", rule: rulesInvalid[1], value: "foo", wantErr: true},
 		{name: "invalid rule: min>max", rule: rulesInvalid[2], value: "foo", wantErr: true},
+		{name: "invalid rule: invalid unorm value", rule: rulesInvalid[3], value: "foo", wantErr: true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

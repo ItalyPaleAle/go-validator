@@ -13,7 +13,9 @@ func Test_mapValidator(t *testing.T) {
 		"min=2,max=3",
 		"value=(min=2)",
 		"key=(min=2),value=(max=5)",
-		// Invalid rules
+		"key=(asciionly)",
+	}
+	invalidRules := []string{
 		"min=0",
 		"max=-1",
 		"min=5,max=1",
@@ -49,9 +51,11 @@ func Test_mapValidator(t *testing.T) {
 		{name: "key min length fail 1", rule: rules[5], value: map[string]string{"1": "h"}, wantErr: true},
 		{name: "key min length fail 2", rule: rules[5], value: map[string]string{"foo": "hi", "2": "h"}, wantErr: true},
 		{name: "value max length ok", rule: rules[5], value: map[string]string{"foo": "hello", "bar": "world!"}, wantErr: true},
-		{name: "invalid rule: min<1", rule: rules[6], value: map[string]string{}, wantErr: true},
-		{name: "invalid rule: max<1", rule: rules[7], value: map[string]string{}, wantErr: true},
-		{name: "invalid rule: min>max", rule: rules[8], value: map[string]string{}, wantErr: true},
+		{name: "asciionly for key", rule: rules[6], value: map[string]string{"hi🤣": "😕"}, wantRes: map[string]string{"hi": "😕"}},
+
+		{name: "invalid rule: min<1", rule: invalidRules[0], value: map[string]string{}, wantErr: true},
+		{name: "invalid rule: max<1", rule: invalidRules[1], value: map[string]string{}, wantErr: true},
+		{name: "invalid rule: min>max", rule: invalidRules[2], value: map[string]string{}, wantErr: true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

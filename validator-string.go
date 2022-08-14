@@ -63,10 +63,25 @@ func stringValidator(rule string) validator[string] {
 		// Boolean option, with no value
 		asciiOnly = true
 	}
+	unorm := norm.NFC
+	if unormParam, ok := params["unorm"]; ok {
+		switch strings.ToLower(unormParam) {
+		case "nfc":
+			unorm = norm.NFC
+		case "nfd":
+			unorm = norm.NFD
+		case "nfkc":
+			unorm = norm.NFKC
+		case "nfkd":
+			unorm = norm.NFKD
+		default:
+			return errorValidateFunc[string](errors.New("parameter 'unorm' is invalid"))
+		}
+	}
 
 	return func(val string) (res string, err error) {
-		// Normalize to form NFC
-		val = norm.NFC.String(val)
+		// Unicode normalization
+		val = unorm.String(val)
 
 		// Trim whitespaces from each end (Unicode-aware)
 		// Note that this also trims newlines from both ends, regardless of preserveNewLines
@@ -83,7 +98,7 @@ func stringValidator(rule string) validator[string] {
 		// Trim whitespaces from each end again
 		val = strings.TrimSpace(val)
 
-		// Check if we have rules
+		// Check if we have length rules
 		if min > 0 && len(val) < min {
 			return "", fmt.Errorf("value is shorter than %d", min)
 		}

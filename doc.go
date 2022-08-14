@@ -19,7 +19,7 @@ When passing a value of type `string`, validator performs a set of operations to
 - All leading and trailing whitespace characters are removed, including: spaces, newlines, tabs, and all other characters defined as whitespace by Unicode.
 - All whitespace characters–including spaces, newlines, tabs, and all other characters defined as whitespace by Unicode–are replaced with a regular space, and consecutive whitespace characters are collapsed into one. This is the default behavior but can be disabled with the `preserve-whitespace` rule.
 - All control characters are removed from the string. This includes almost all characters defined as control characters by Unicode, except tabs and newlines, which are converted to spaces (unless `preserve-whitespace` is set), and the Zero-Width Joiner (ZWJ) character, which is commonly used with emojis.
-- The string is normalized to Unicode form NFC (Canonical Composition). (More info about [Unicode normalization])
+- The string is normalized to Unicode form NFC (Canonical Composition); other forms can be selected with the `unorm` option. (More info about [Unicode normalization])
 
 ### Optional rules
 
@@ -29,6 +29,7 @@ When passing a value of type `string`, validator performs a set of operations to
 - **`preserve-newlines`**: boolean flag that preserves all newlines even when `preserve-whitespace` is not set (note that newlines are still trimmed from the ends of the string).
 - **`replace-whitespaces`**: boolean flag that replaces all whitespace characters with an underscore.
 - **`asciionly`**: boolean flag that removes all non-ASCII characters from the string. Note: this is executed after normalizing the string.
+- **`unorm=string`**: Unicode normalization form to use. Possible values: `nfc` (default), `nfd`, `nfkc`, `nfkd`.
 
 ## `[]string`
 
