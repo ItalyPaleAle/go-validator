@@ -4,8 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
-
-	"github.com/spf13/cast"
+	"strconv"
 )
 
 // mapValidator returns a validator for type `map[string]T`
@@ -22,7 +21,7 @@ func mapValidator[T any](rule string) validator[map[string]T] {
 	// Rules from parameters
 	min := -1
 	if v, ok := params["min"]; ok && v != "" {
-		min, err = cast.ToIntE(v)
+		min, err = strconv.Atoi(v)
 		if err != nil {
 			return errFunc(fmt.Errorf("parameter 'min' is invalid: failed to cast to int: %v", err))
 		}
@@ -32,7 +31,7 @@ func mapValidator[T any](rule string) validator[map[string]T] {
 	}
 	max := -1
 	if v, ok := params["max"]; ok && v != "" {
-		max, err = cast.ToIntE(v)
+		max, err = strconv.Atoi(v)
 		if err != nil {
 			return errFunc(fmt.Errorf("parameter 'max' is invalid: failed to cast to int: %v", err))
 		}

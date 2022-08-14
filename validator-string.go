@@ -3,11 +3,11 @@ package validator
 import (
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/spf13/cast"
 	"golang.org/x/text/unicode/norm"
 )
 
@@ -22,7 +22,7 @@ func stringValidator(rule string) validator[string] {
 	// Parse parameters
 	min := -1
 	if v, ok := params["min"]; ok && v != "" {
-		min, err = cast.ToIntE(v)
+		min, err = strconv.Atoi(v)
 		if err != nil {
 			return errorValidateFunc[string](fmt.Errorf("parameter 'min' is invalid: failed to cast to int: %v", err))
 		}
@@ -32,7 +32,7 @@ func stringValidator(rule string) validator[string] {
 	}
 	max := -1
 	if v, ok := params["max"]; ok && v != "" {
-		max, err = cast.ToIntE(v)
+		max, err = strconv.Atoi(v)
 		if err != nil {
 			return errorValidateFunc[string](fmt.Errorf("parameter 'max' is invalid: failed to cast to int: %v", err))
 		}
