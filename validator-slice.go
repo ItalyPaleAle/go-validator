@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"reflect"
 	"strconv"
+
+	"github.com/italypaleale/go-validator/sliceutils"
 )
 
 // sliceValidator returns a validator for type `[]T`
@@ -68,11 +70,11 @@ func sliceValidator[T any](rule string) validator[[]T] {
 
 		if sortFlag || uniqueFlag {
 			fp = reflect.ValueOf(&valueSorter).Elem()
-			fp.Set(reflect.Indirect(reflect.ValueOf(SortSlice[string])))
+			fp.Set(reflect.Indirect(reflect.ValueOf(sliceutils.SortSlice[string])))
 		}
 		if uniqueFlag {
 			fp = reflect.ValueOf(&valueDuplicateRemover).Elem()
-			fp.Set(reflect.Indirect(reflect.ValueOf(RemoveDuplicatesInSortedSlice[string])))
+			fp.Set(reflect.Indirect(reflect.ValueOf(sliceutils.RemoveDuplicatesInSortedSlice[string])))
 		}
 	default:
 		return errFunc(fmt.Errorf("type of value '%T' is not supported", zero))

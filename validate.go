@@ -11,6 +11,8 @@ type validateTypes interface {
 	string | map[string]string | []string
 }
 
+var validators sync.Map
+
 // Validate and sanitize a value, using generics to define the supported types
 // Rule follows the format for the given type
 func Validate[T validateTypes](val T, rule string) (res T, err error) {
@@ -90,8 +92,6 @@ func Validate[T validateTypes](val T, rule string) (res T, err error) {
 		return zero, fmt.Errorf("cannot find a validator for type %T", val)
 	}
 }
-
-var validators sync.Map
 
 // ValidateAny validates and sanitizes a value with type any
 // Supported types are: `string`, `map[string]string`, `[]string`, and pointers to those types

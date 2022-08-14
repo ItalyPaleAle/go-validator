@@ -1,4 +1,4 @@
-package validator
+package sliceutils
 
 import (
 	"sort"
